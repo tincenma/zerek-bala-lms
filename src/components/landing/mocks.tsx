@@ -1,16 +1,6 @@
 import { useEffect, useState } from 'react'
-import {
-  ASSIGNMENTS,
-  CASE_CLOCK_STATS,
-  CASE_HOMEWORK_STATS,
-  CASE_SCORE_STATS,
-  EQUALIZER_BARS,
-  HOMEWORK_BARS,
-  NOTE_PHRASES,
-  PROGRESS_METRICS,
-  SCHEDULE_ITEMS,
-  TOTAL_STUDY_SECONDS,
-} from '../../data/landingContent'
+import { EQUALIZER_BARS, HOMEWORK_BARS, TOTAL_STUDY_SECONDS } from '../../data/landingContent'
+import { useI18n } from '../../i18n/useI18n'
 import { CheckIcon } from './icons'
 
 type CaseStat = Readonly<{
@@ -19,6 +9,7 @@ type CaseStat = Readonly<{
 }>
 
 export function StudyTimerMock() {
+  const { t } = useI18n()
   const [progress, setProgress] = useState(0)
   const [seconds, setSeconds] = useState(TOTAL_STUDY_SECONDS)
 
@@ -37,14 +28,15 @@ export function StudyTimerMock() {
   const circumference = 2 * Math.PI * 70
   const minutes = String(Math.floor(seconds / 60)).padStart(2, '0')
   const shownSeconds = String(seconds % 60).padStart(2, '0')
+  const content = t.mocks.studyTimer
 
   return (
     <div className="ui-card ui-lift mock-card">
       <div className="card-topline">
         <span className="ui-chip">
-          <span className="dot pulse-dot" /> In course
+          <span className="dot pulse-dot" /> {content.status}
         </span>
-        <span className="microcopy">Digital Skills</span>
+        <span className="microcopy">{content.course}</span>
       </div>
       <div className="timer-shell">
         <svg width="180" height="180" viewBox="0 0 180 180" aria-hidden="true">
@@ -66,11 +58,11 @@ export function StudyTimerMock() {
           <div>
             {minutes}:{shownSeconds}
           </div>
-          <span>remaining</span>
+          <span>{content.remaining}</span>
         </div>
       </div>
       <div className="card-foot">
-        <span>Building your first portfolio / Module 7</span>
+        <span>{content.footer}</span>
         <Equalizer />
       </div>
     </div>
@@ -78,20 +70,23 @@ export function StudyTimerMock() {
 }
 
 export function AssignmentsMock() {
+  const { t } = useI18n()
   const [start, setStart] = useState(0)
+  const content = t.mocks.assignments
+  const assignments = content.items
 
   useEffect(() => {
-    const id = window.setInterval(() => setStart((current) => (current + 1) % ASSIGNMENTS.length), 2600)
+    const id = window.setInterval(() => setStart((current) => (current + 1) % assignments.length), 2600)
     return () => window.clearInterval(id)
-  }, [])
+  }, [assignments.length])
 
-  const visible = [0, 1, 2].map((index) => ASSIGNMENTS[(start + index) % ASSIGNMENTS.length])
+  const visible = [0, 1, 2].map((index) => assignments[(start + index) % assignments.length])
 
   return (
     <div className="ui-card ui-lift mock-card">
       <div className="card-topline">
-        <span className="ui-chip">Course tasks / this week</span>
-        <span className="microcopy">5 open</span>
+        <span className="ui-chip">{content.title}</span>
+        <span className="microcopy">{content.openCount}</span>
       </div>
       <div className="mock-stack">
         {visible.map((item, index) => (
@@ -100,7 +95,7 @@ export function AssignmentsMock() {
             className={`notif ui-row ${index === 0 ? 'row-active' : ''}`}
             style={{ animationDelay: `${index * 0.08}s` }}
           >
-            <span className={`tag ${item.tag === 'NEW' ? 'tag-dark' : ''}`}>{item.tag}</span>
+            <span className={`tag ${item.tagTone === 'dark' ? 'tag-dark' : ''}`}>{item.tag}</span>
             <div className="row-main">
               <div>{item.title}</div>
               <span>{item.meta}</span>
@@ -109,22 +104,24 @@ export function AssignmentsMock() {
         ))}
       </div>
       <div className="card-foot card-foot-bordered">
-        <span>Next deadline</span>
-        <strong>Tomorrow / 18:00</strong>
+        <span>{content.nextDeadline}</span>
+        <strong>{content.nextDeadlineValue}</strong>
       </div>
     </div>
   )
 }
 
 export function ScheduleMock() {
+  const { t } = useI18n()
   const [tick, setTick] = useState(0)
+  const content = t.mocks.schedule
 
   useEffect(() => {
     const id = window.setInterval(() => setTick((current) => (current + 1) % 4), 1800)
     return () => window.clearInterval(id)
   }, [])
 
-  const plan = SCHEDULE_ITEMS.map((row) => ({
+  const plan = content.items.map((row) => ({
     ...row,
     done: row.completedAtTick <= tick,
   }))
@@ -132,8 +129,10 @@ export function ScheduleMock() {
   return (
     <div className="ui-card ui-lift mock-card">
       <div className="card-topline">
-        <span className="ui-chip">Today / course plan</span>
-        <span className="microcopy">{plan.filter((row) => row.done).length}/5</span>
+        <span className="ui-chip">{content.title}</span>
+        <span className="microcopy">
+          {plan.filter((row) => row.done).length}/{plan.length}
+        </span>
       </div>
       <div className="mock-stack">
         {plan.map((row) => (
@@ -145,7 +144,7 @@ export function ScheduleMock() {
         ))}
       </div>
       <div className="card-foot card-foot-bordered">
-        <span>Streak / 23 days</span>
+        <span>{content.streak}</span>
         <div className="streak-bars" aria-hidden="true">
           {Array.from({ length: 14 }).map((_, index) => (
             <span key={index} className={index < 11 ? 'filled' : undefined} />
@@ -157,32 +156,35 @@ export function ScheduleMock() {
 }
 
 export function NotesMock() {
+  const { t } = useI18n()
   const [phrase, setPhrase] = useState(0)
   const [typed, setTyped] = useState('')
+  const content = t.mocks.notes
+  const phrases = content.phrases
 
   useEffect(() => {
     let index = 0
-    const target = NOTE_PHRASES[phrase]
+    const target = phrases[phrase % phrases.length]
     const id = window.setInterval(() => {
       index += 1
       setTyped(target.slice(0, index))
       if (index >= target.length) {
         window.clearInterval(id)
-        window.setTimeout(() => setPhrase((current) => (current + 1) % NOTE_PHRASES.length), 1500)
+        window.setTimeout(() => setPhrase((current) => (current + 1) % phrases.length), 1500)
       }
     }, 55)
 
     return () => window.clearInterval(id)
-  }, [phrase])
+  }, [phrase, phrases])
 
   return (
     <div className="ui-card ui-lift mock-card">
       <div className="card-topline">
-        <span className="ui-chip">Note / Digital skills</span>
-        <span className="microcopy">Saved</span>
+        <span className="ui-chip">{content.title}</span>
+        <span className="microcopy">{content.saved}</span>
       </div>
       <div className="notes-body">
-        <h4>What I learned this week</h4>
+        <h4>{content.heading}</h4>
         <span className="skeleton-bar w-92" />
         <span className="skeleton-bar w-78" />
         <span className="skeleton-bar w-85" />
@@ -191,27 +193,32 @@ export function NotesMock() {
           <span className="typing-cursor" />
         </p>
         <div className="chip-row">
-          <span className="ui-chip">#skills</span>
-          <span className="ui-chip">#practice</span>
-          <span className="ui-chip">#progress</span>
+          {content.tags.map((tag) => (
+            <span key={tag} className="ui-chip">
+              {tag}
+            </span>
+          ))}
         </div>
       </div>
       <div className="card-foot card-foot-bordered">
-        <span>132 notes this course</span>
-        <span>trending up</span>
+        <span>{content.footerNotes}</span>
+        <span>{content.footerTrend}</span>
       </div>
     </div>
   )
 }
 
 export function GoalsMock() {
+  const { t } = useI18n()
+  const content = t.mocks.goals
+
   return (
     <div className="ui-card-dark calm-field mock-card">
       <div className="card-topline">
-        <span className="microcopy light">Application / live</span>
+        <span className="microcopy light">{content.title}</span>
         <span className="microcopy light meta-dot-row">
           <span className="dot dot-light pulse-dot" />
-          Reviewing
+          {content.status}
         </span>
       </div>
       <div className="wave-bars" aria-hidden="true">
@@ -231,17 +238,20 @@ export function GoalsMock() {
           )
         })}
       </div>
-      <p className="dark-note">"I want practical skills, but I need a clear path and someone to guide me."</p>
+      <p className="dark-note">{content.quote}</p>
     </div>
   )
 }
 
 export function PathMock() {
+  const { t } = useI18n()
+  const content = t.mocks.path
+
   return (
     <div className="ui-card mock-card">
       <div className="card-topline">
-        <span className="microcopy">Learning path / active</span>
-        <span className="ui-chip">personal</span>
+        <span className="microcopy">{content.title}</span>
+        <span className="ui-chip">{content.chip}</span>
       </div>
       <div className="path-canvas">
         <svg viewBox="0 0 300 200" className="path-svg" aria-hidden="true">
@@ -257,33 +267,35 @@ export function PathMock() {
           </g>
           <g fill="#000" fontFamily="Inter, system-ui, sans-serif" fontSize="7">
             <text x="40" y="50">
-              Basics
+              {content.labels.basics}
             </text>
             <text x="150" y="50">
-              Practice
+              {content.labels.practice}
             </text>
             <text x="230" y="50">
-              Quiz
+              {content.labels.quiz}
             </text>
             <text x="75" y="140">
-              Project
+              {content.labels.project}
             </text>
             <text x="185" y="140">
-              Portfolio
+              {content.labels.portfolio}
             </text>
           </g>
         </svg>
       </div>
       <div className="card-foot">
-        <span>5 modules / 3 unlocked</span>
-        <span>auto-adapted</span>
+        <span>{content.footerModules}</span>
+        <span>{content.footerMode}</span>
       </div>
     </div>
   )
 }
 
 export function ProgressMock() {
+  const { t } = useI18n()
   const [tick, setTick] = useState(0)
+  const content = t.mocks.progress
 
   useEffect(() => {
     const id = window.setInterval(() => setTick((current) => (current + 1) % 60), 1000)
@@ -301,8 +313,8 @@ export function ProgressMock() {
   return (
     <div className="ui-card mock-card">
       <div className="card-topline">
-        <span className="microcopy">Course progress / 30 days</span>
-        <span className="ui-chip">Scores up 38%</span>
+        <span className="microcopy">{content.title}</span>
+        <span className="ui-chip">{content.chip}</span>
       </div>
       <div className="progress-chart">
         <svg viewBox="0 0 300 90" preserveAspectRatio="none" aria-hidden="true">
@@ -316,13 +328,13 @@ export function ProgressMock() {
           <polyline points={points} fill="none" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         <div className="chart-labels">
-          <span>Week 1</span>
-          <span>Week 2</span>
-          <span>Week 4</span>
+          {content.chartLabels.map((label) => (
+            <span key={label}>{label}</span>
+          ))}
         </div>
       </div>
       <div className="metric-grid">
-        {PROGRESS_METRICS.map((metric) => (
+        {content.metrics.map((metric) => (
           <div key={metric.label}>
             <strong>{metric.value}</strong>
             <span>{metric.label}</span>
@@ -334,7 +346,9 @@ export function ProgressMock() {
 }
 
 export function CaseClockMock() {
+  const { t } = useI18n()
   const [tick, setTick] = useState(0)
+  const content = t.mocks.caseClock
 
   useEffect(() => {
     const id = window.setInterval(() => setTick((current) => current + 1), 1500)
@@ -346,8 +360,8 @@ export function CaseClockMock() {
   return (
     <div className="ui-card case-card">
       <div className="card-topline">
-        <span className="microcopy">Learning rhythm</span>
-        <span className="microcopy">course / progress</span>
+        <span className="microcopy">{content.title}</span>
+        <span className="microcopy">{content.status}</span>
       </div>
       <div className="clock-wrap">
         <svg viewBox="-100 -100 200 200" aria-hidden="true">
@@ -381,13 +395,15 @@ export function CaseClockMock() {
           />
         </svg>
       </div>
-      <CaseStatGrid stats={CASE_CLOCK_STATS} />
+      <CaseStatGrid stats={content.stats} />
     </div>
   )
 }
 
 export function CaseScoreMock() {
+  const { t } = useI18n()
   const [score, setScore] = useState(58)
+  const content = t.mocks.caseScore
 
   useEffect(() => {
     const id = window.setInterval(() => setScore((current) => (current < 96 ? current + 1 : 58)), 140)
@@ -397,36 +413,42 @@ export function CaseScoreMock() {
   return (
     <div className="ui-card-dark calm-field case-card">
       <div className="card-topline">
-        <span className="microcopy light">Completion score</span>
+        <span className="microcopy light">{content.title}</span>
         <span className="microcopy light meta-dot-row">
-          <span className="dot dot-light pulse-dot" /> active
+          <span className="dot dot-light pulse-dot" /> {content.status}
         </span>
       </div>
       <div className="score-readout">
         <strong>{score}</strong>
-        <span>out of 100</span>
+        <span>{content.label}</span>
       </div>
-      <CaseStatGrid stats={CASE_SCORE_STATS} tone="dark" />
+      <CaseStatGrid stats={content.stats} tone="dark" />
     </div>
   )
 }
 
 export function CaseHomeworkMock() {
+  const { t } = useI18n()
+  const content = t.mocks.caseHomework
+
   return (
     <div className="ui-card case-card">
       <div className="card-topline">
-        <span className="microcopy">Open tasks / 7wk</span>
-        <span className="ui-chip">all clear</span>
+        <span className="microcopy">{content.title}</span>
+        <span className="ui-chip">{content.chip}</span>
       </div>
       <div className="homework-bars" aria-hidden="true">
         {HOMEWORK_BARS.map((value, index) => (
           <div key={index}>
             <span style={{ height: `${value * 4}px`, opacity: 0.2 + index * 0.12 }} />
-            <small>W{index + 1}</small>
+            <small>
+              {content.weekPrefix}
+              {index + 1}
+            </small>
           </div>
         ))}
       </div>
-      <CaseStatGrid stats={CASE_HOMEWORK_STATS} />
+      <CaseStatGrid stats={content.stats} />
     </div>
   )
 }

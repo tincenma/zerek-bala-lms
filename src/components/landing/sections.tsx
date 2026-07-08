@@ -1,13 +1,5 @@
-import {
-  COURSE_ITEMS,
-  FAQ_ITEMS,
-  FOOTER_COLUMNS,
-  MARQUEE_WORDS,
-  NAV_ITEMS,
-  PROCESS_STEPS,
-  PROGRAM_ITEMS,
-  TESTIMONIALS,
-} from '../../data/landingContent'
+import { useEffect, useRef, useState } from 'react'
+import { useI18n } from '../../i18n/useI18n'
 import { Reveal, RevealLine } from './effects'
 import { ArrowIcon } from './icons'
 import {
@@ -24,72 +16,163 @@ import {
 } from './mocks'
 import { SectionHeader } from './SectionHeader'
 
+type HighlightedText = {
+  before: string
+  emphasis: string
+  after?: string
+}
+
 const courseMocks = [<StudyTimerMock />, <AssignmentsMock />, <ScheduleMock />, <NotesMock />] as const
 const processMocks = [<GoalsMock />, <PathMock />, <ProgressMock />] as const
 const programMocks = [<CaseClockMock />, <CaseScoreMock />, <CaseHomeworkMock />] as const
+const CONTACT_EMAIL = 'hello@zerekbala.kz'
+
+function renderHighlighted(text: HighlightedText) {
+  return (
+    <>
+      {text.before}
+      <em>{text.emphasis}</em>
+      {text.after}
+    </>
+  )
+}
+
+function LanguageSwitcher() {
+  const { languageOptions, locale, setLocale, t } = useI18n()
+  const [open, setOpen] = useState(false)
+  const switcherRef = useRef<HTMLDivElement | null>(null)
+  const currentOption = languageOptions.find((option) => option.locale === locale) ?? languageOptions[0]
+
+  useEffect(() => {
+    if (!open) return undefined
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!switcherRef.current?.contains(event.target as Node)) {
+        setOpen(false)
+      }
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open])
+
+  return (
+    <div className={`language-switcher${open ? ' open' : ''}`} ref={switcherRef}>
+      <button
+        type="button"
+        className="language-trigger"
+        data-locale={locale}
+        aria-label={t.nav.languageSelectorLabel}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+      >
+        <span>{currentOption.shortLabel}</span>
+        <span className="language-caret" aria-hidden="true" />
+      </button>
+
+      {open ? (
+        <div className="language-menu" role="menu" aria-label={t.nav.languageSelectorLabel}>
+          {languageOptions.map((option) => (
+            <button
+              key={option.locale}
+              type="button"
+              data-locale={option.locale}
+              role="menuitemradio"
+              aria-checked={option.locale === locale}
+              className={option.locale === locale ? 'active' : undefined}
+              onClick={() => {
+                setLocale(option.locale)
+                setOpen(false)
+              }}
+            >
+              <span>{option.label}</span>
+              <span>{option.shortLabel}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  )
+}
 
 export function NavBar() {
+  const { t } = useI18n()
+
   return (
-    <nav className="site-nav animate-fade-down" aria-label="Primary navigation">
+    <nav className="site-nav animate-fade-down" aria-label={t.nav.ariaLabel}>
       <div className="nav-inner">
         <a href="#" className="brand">
           Zerek Bala
           <sup>{'\u00AE'}</sup>
         </a>
         <ul className="nav-links">
-          {NAV_ITEMS.map((item) => (
-            <li key={item.label}>
+          {t.nav.items.map((item) => (
+            <li key={item.href}>
               <a href={item.href} className={item.active ? 'active' : undefined}>
                 {item.label}
               </a>
             </li>
           ))}
         </ul>
-        <a href="#contact" className="pill-button pill-button-dark nav-cta">
-          Explore Courses
-          <ArrowIcon />
-        </a>
+        <div className="nav-actions">
+          <LanguageSwitcher />
+          <a href="#contact" className="pill-button pill-button-dark nav-cta">
+            {t.nav.cta}
+            <ArrowIcon />
+          </a>
+        </div>
       </div>
     </nav>
   )
 }
 
 export function Hero() {
+  const { t } = useI18n()
+
   return (
     <section className="hero-section">
       <h1 className="hero-title">
         <RevealLine delay={0.1}>
-          {'Learn practical '}
-          <em>skills</em>
-          {' online.'}
+          {t.hero.title.before}
+          <em>{t.hero.title.emphasis}</em>
+          {t.hero.title.after}
         </RevealLine>
       </h1>
 
-      <p className="hero-copy animate-fade-rise-delay">
-        Zerek Bala is an online learning platform with accessible courses, structured modules, assignments, and
-        teacher or mentor support. Learn at your own pace and build knowledge you can use in real life.
-      </p>
+      <p className="hero-copy animate-fade-rise-delay">{t.hero.copy}</p>
 
       <a href="#courses" className="pill-button pill-button-dark hero-button animate-fade-rise-delay-2 halo-once">
-        Explore Free Courses
+        {t.hero.cta}
       </a>
 
       <div className="hero-meta animate-fade-rise-delay-2">
         <span className="meta-dot-row">
           <span className="dot drift" />
-          Free courses available
+          {t.hero.metaAvailable}
         </span>
         <span className="hero-divider">/</span>
-        <span className="hero-extra">Online learning with mentor support</span>
+        <span className="hero-extra">{t.hero.metaSupport}</span>
       </div>
     </section>
   )
 }
 
 export function Marquee() {
+  const { t } = useI18n()
+
   const row = (
     <div className="marquee-row">
-      {MARQUEE_WORDS.map((word) => (
+      {t.marquee.words.map((word) => (
         <span className="marquee-pair" key={word}>
           <span>{word}</span>
           <span className="marquee-star" aria-hidden="true">
@@ -111,19 +194,14 @@ export function Marquee() {
 }
 
 export function Courses() {
+  const { t } = useI18n()
+  const content = t.sections.courses
+
   return (
     <section id="courses" className="section-pad">
-      <SectionHeader
-        eyebrow="- Platform"
-        title={
-          <>
-            Courses designed <em>for practical growth.</em>
-          </>
-        }
-        kicker="Structured learning. Real support."
-      />
+      <SectionHeader eyebrow={content.eyebrow} title={renderHighlighted(content.title)} kicker={content.kicker} />
       <div className="container courses-grid">
-        {COURSE_ITEMS.map((item, index) => (
+        {content.items.map((item, index) => (
           <Reveal key={item.number} delay={(index % 2) + 1} className="course-item group">
             <div className="course-mock">{courseMocks[index]}</div>
             <div className="course-copy">
@@ -131,7 +209,7 @@ export function Courses() {
               <h3>{item.title}</h3>
               <p>{item.description}</p>
               <a href="#contact" className="text-link">
-                Learn more
+                {content.linkLabel}
                 <ArrowIcon />
               </a>
             </div>
@@ -143,18 +221,14 @@ export function Courses() {
 }
 
 export function Process() {
+  const { t } = useI18n()
+  const content = t.sections.process
+
   return (
     <section id="process" className="section-pad">
-      <SectionHeader
-        eyebrow="- How it works"
-        title={
-          <>
-            Three steps from <em>course to confidence.</em>
-          </>
-        }
-      />
+      <SectionHeader eyebrow={content.eyebrow} title={renderHighlighted(content.title)} />
       <div className="container process-grid">
-        {PROCESS_STEPS.map((step, index) => (
+        {content.steps.map((step, index) => (
           <Reveal key={step.number} delay={index + 1} className="process-item group">
             <div className="process-line">
               <span>{step.number}</span>
@@ -171,19 +245,14 @@ export function Process() {
 }
 
 export function Stories() {
+  const { t } = useI18n()
+  const content = t.sections.stories
+
   return (
     <section id="stories" className="section-pad">
-      <SectionHeader
-        eyebrow="- Programs"
-        title={
-          <>
-            Learning for individuals, <em>teams, and communities.</em>
-          </>
-        }
-        kicker="Flexible learning for different goals."
-      />
+      <SectionHeader eyebrow={content.eyebrow} title={renderHighlighted(content.title)} kicker={content.kicker} />
       <div className="container story-grid">
-        {PROGRAM_ITEMS.map((item, index) => (
+        {content.items.map((item, index) => (
           <Reveal key={item.tag} delay={index + 1} className="story-card group">
             <div className="story-mock ui-lift">{programMocks[index]}</div>
             <div className="story-meta">
@@ -199,18 +268,14 @@ export function Stories() {
 }
 
 export function Testimonials() {
+  const { t } = useI18n()
+  const content = t.sections.testimonials
+
   return (
     <section id="testimonials" className="section-pad">
-      <SectionHeader
-        eyebrow="- Platform Value"
-        title={
-          <>
-            Built for learners <em>and organizations.</em>
-          </>
-        }
-      />
+      <SectionHeader eyebrow={content.eyebrow} title={renderHighlighted(content.title)} />
       <div className="container testimonial-grid">
-        {TESTIMONIALS.map((quote, index) => (
+        {content.items.map((quote, index) => (
           <Reveal key={quote.quote} delay={(index % 3) + 1} className="group">
             <div className="ui-card ui-lift testimonial-card">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="quote-icon" aria-hidden="true">
@@ -239,27 +304,29 @@ export function Testimonials() {
 }
 
 export function FAQ() {
+  const { t } = useI18n()
+  const content = t.sections.faq
+
   return (
     <section id="faq" className="section-pad faq-section">
       <div className="container faq-grid">
         <div>
           <Reveal>
-            <span className="eyebrow">- Questions</span>
+            <span className="eyebrow">{content.eyebrow}</span>
           </Reveal>
           <Reveal delay={1}>
-            <h2 className="faq-title">
-              Things learners and organizations <em>often ask.</em>
-            </h2>
+            <h2 className="faq-title">{renderHighlighted(content.title)}</h2>
           </Reveal>
           <Reveal delay={2}>
             <p className="faq-copy">
-              Anything missing? Write to us at{' '}
-              <a href="mailto:hello@zerekbala.kz">hello@zerekbala.kz</a>.
+              {content.copyBeforeEmail}
+              <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+              {content.copyAfterEmail}
             </p>
           </Reveal>
         </div>
         <div>
-          {FAQ_ITEMS.map((item, index) => (
+          {content.items.map((item, index) => (
             <Reveal key={item.question} delay={(index % 3) + 1}>
               <details className="faq">
                 <summary>
@@ -279,27 +346,28 @@ export function FAQ() {
 }
 
 export function ContactCTA() {
+  const { t } = useI18n()
+  const content = t.sections.contact
+
   return (
     <section id="contact" className="contact-section">
       <div className="container contact-inner">
         <Reveal>
-          <span className="eyebrow">- Begin</span>
+          <span className="eyebrow">{content.eyebrow}</span>
         </Reveal>
         <Reveal delay={1}>
-          <h2>
-            Your next skill is <em>one course away.</em>
-          </h2>
+          <h2>{renderHighlighted(content.title)}</h2>
         </Reveal>
         <Reveal delay={2}>
-          <p>Explore accessible online courses, learn with structure, and get support when guidance matters.</p>
+          <p>{content.copy}</p>
         </Reveal>
         <Reveal delay={3}>
           <div className="contact-actions">
             <a href="#" className="pill-button pill-button-dark">
-              Explore Free Courses
+              {content.primaryCta}
             </a>
-            <a href="mailto:hello@zerekbala.kz" className="pill-button pill-button-light">
-              Talk to us
+            <a href={`mailto:${CONTACT_EMAIL}`} className="pill-button pill-button-light">
+              {content.secondaryCta}
             </a>
           </div>
         </Reveal>
@@ -309,6 +377,8 @@ export function ContactCTA() {
 }
 
 export function SiteFooter() {
+  const { t } = useI18n()
+
   return (
     <footer className="site-footer">
       <div className="container">
@@ -318,10 +388,10 @@ export function SiteFooter() {
               Zerek Bala
               <sup>{'\u00AE'}</sup>
             </a>
-            <p>An online learning platform for accessible courses, guided progress, and practical skill development.</p>
+            <p>{t.footer.description}</p>
           </Reveal>
           <div className="footer-links">
-            {FOOTER_COLUMNS.map((column, index) => (
+            {t.footer.columns.map((column, index) => (
               <Reveal key={column.heading} delay={index + 1}>
                 <div className="eyebrow footer-heading">{column.heading}</div>
                 <ul>
@@ -337,12 +407,12 @@ export function SiteFooter() {
         </div>
         <div className="hairline footer-rule" />
         <div className="footer-bottom">
-          <div>{'\u00A9'} MMXXVI Zerek Bala. All rights reserved.</div>
+          <div>{'\u00A9'} {t.footer.copyright}</div>
           <div>
-            <span>Built for learners and organizations</span>
+            <span>{t.footer.builtFor}</span>
             <span className="meta-dot-row">
               <span className="dot drift" />
-              Online
+              {t.footer.status}
             </span>
           </div>
         </div>
