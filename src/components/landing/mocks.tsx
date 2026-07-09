@@ -255,7 +255,7 @@ export function PathMock() {
       </div>
       <div className="path-canvas">
         <svg viewBox="0 0 300 200" className="path-svg" aria-hidden="true">
-          <g fill="none" stroke="#000" strokeWidth="1" opacity="0.85">
+          <g fill="none" stroke="var(--primary)" strokeWidth="1" opacity="0.9">
             <rect x="30" y="30" width="80" height="50" rx="4" />
             <rect x="140" y="30" width="60" height="50" rx="4" />
             <rect x="220" y="30" width="55" height="50" rx="4" />
@@ -265,7 +265,7 @@ export function PathMock() {
             <path d="M170 80 V100" className="draw-in delay-path-1" />
             <path d="M247 80 V100 H210 V120" className="draw-in delay-path-2" />
           </g>
-          <g fill="#000" fontFamily="Inter, system-ui, sans-serif" fontSize="7">
+          <g fill="var(--ink)" fontFamily="Inter, system-ui, sans-serif" fontSize="7">
             <text x="40" y="50">
               {content.labels.basics}
             </text>
@@ -320,12 +320,19 @@ export function ProgressMock() {
         <svg viewBox="0 0 300 90" preserveAspectRatio="none" aria-hidden="true">
           <defs>
             <linearGradient id="areaG" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#000" stopOpacity="0.18" />
-              <stop offset="100%" stopColor="#000" stopOpacity="0" />
+              <stop offset="0%" stopColor="var(--secondary)" stopOpacity="0.28" />
+              <stop offset="100%" stopColor="var(--secondary)" stopOpacity="0" />
             </linearGradient>
           </defs>
           <polyline points={`0,90 ${points} 300,90`} fill="url(#areaG)" />
-          <polyline points={points} fill="none" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <polyline
+            points={points}
+            fill="none"
+            stroke="var(--secondary)"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
         <div className="chart-labels">
           {content.chartLabels.map((label) => (
@@ -376,19 +383,19 @@ export function CaseClockMock() {
                 y1={(Math.sin(radian) * 60).toFixed(3)}
                 x2={(Math.cos(radian) * 78).toFixed(3)}
                 y2={(Math.sin(radian) * 78).toFixed(3)}
-                stroke={focus ? '#000' : 'rgba(0,0,0,0.18)'}
+                stroke={focus ? 'var(--accent)' : 'rgba(67,56,202,0.22)'}
                 strokeWidth={focus ? 2 : 1}
                 strokeLinecap="round"
               />
             )
           })}
-          <circle cx="0" cy="0" r="40" fill="none" stroke="rgba(0,0,0,0.15)" />
+          <circle cx="0" cy="0" r="40" fill="none" stroke="rgba(67,56,202,0.18)" />
           <line
             x1="0"
             y1="0"
             x2={(Math.cos((angle * Math.PI) / 180) * 38).toFixed(3)}
             y2={(Math.sin((angle * Math.PI) / 180) * 38).toFixed(3)}
-            stroke="#000"
+            stroke="var(--primary)"
             strokeWidth="1.5"
             strokeLinecap="round"
             className="clock-hand"
