@@ -281,7 +281,7 @@ export function Testimonials() {
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="quote-icon" aria-hidden="true">
                 <path
                   d="M9 7H6a3 3 0 0 0-3 3v6h6v-6H6m12 6v-6h-3a3 3 0 0 0-3 3v3h6"
-                  stroke="#000"
+                  stroke="var(--primary)"
                   strokeWidth="1.2"
                   strokeLinejoin="round"
                 />
